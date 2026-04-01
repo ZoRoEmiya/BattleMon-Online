@@ -18,7 +18,7 @@ BattleMon Online is a multiplayer web game where players battle each other using
 ## 🧬 Game Basics
 
 - 🧍‍♂️ 1v1 battles  
-- 🧠 Strategy > luck  
+- 🧠 Strategy based
 - 🐾 3 creatures per team  
 
 ### Types
