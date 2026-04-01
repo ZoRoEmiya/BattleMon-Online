@@ -64,4 +64,13 @@ Currently in development.
 ```text
 /client  → React app  
 /server  → Backend  
-/docs    → Game design  
+/docs    → Game design
+
+🎯 Goal
+
+Create a clean, working, online battle system
+that actually feels like a real game.
+
+⚡ Coming Soon...
+
+Built by ZoRoEmiya
