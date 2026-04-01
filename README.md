@@ -66,11 +66,11 @@ Currently in development.
 /server  → Backend  
 /docs    → Game design
 
-🎯 Goal
+## 🎯 Goal
 
 Create a clean, working, online battle system
 that actually feels like a real game.
 
-⚡ Coming Soon...
+## ⚡ Coming Soon...
 
 Built by ZoRoEmiya
