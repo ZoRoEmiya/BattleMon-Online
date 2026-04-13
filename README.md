@@ -64,4 +64,7 @@ Currently in development.
 ```text
 /client  → React app  
 /server  → Backend  
-/docs    → Game design  
+/docs    → Game design 
+
+
+
