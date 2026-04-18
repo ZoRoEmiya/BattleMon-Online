@@ -3,19 +3,27 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^7.7.0",
     "express": "^5.2.1"
   },
   "devDependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.7.0",
+    "better-sqlite3": "^12.9.0",
     "nodemon": "^3.1.14",
-    "prisma": "^7.7.0"
+    "prisma": "^7.7.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
   }
 }
