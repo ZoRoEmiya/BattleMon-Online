@@ -1,187 +1,128 @@
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
-const prisma = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({
-    url: "./dev.db",
-  }),
+const adapter = new PrismaBetterSqlite3({
+  url: "file:./dev.db",
 });
 
-/**
- * Seeds the database with initial data for development and testing.
- * Clears existing data and inserts base creatures, moves, and relations.
- */
-async function main() {
-  console.log("Seeding database");
+const prisma = new PrismaClient({ adapter });
 
-  /**
-   * Clear existing data to avoid duplicates.
-   * Order matters due to foreign key constraints.
-   */
-  await prisma.battleTurn.deleteMany();
-  await prisma.battle.deleteMany();
+async function main() {
+  await prisma.creatureMove.deleteMany();
   await prisma.teamCreature.deleteMany();
   await prisma.team.deleteMany();
-  await prisma.creatureMove.deleteMany();
+  await prisma.user.deleteMany();
   await prisma.move.deleteMany();
   await prisma.creature.deleteMany();
-  await prisma.user.deleteMany();
 
-  /**
-   * Create moves.
-   */
-  const flameSlash = await prisma.move.create({
-    data: {
-      name: "Flame Slash",
-      type: "Fire",
-      power: 70,
-      accuracy: 100,
-    },
-  });
-
-  const aquaBlast = await prisma.move.create({
-    data: {
-      name: "Aqua Blast",
-      type: "Water",
-      power: 75,
-      accuracy: 95,
-    },
-  });
-
-  const thunderCut = await prisma.move.create({
-    data: {
-      name: "Thunder Cut",
-      type: "Electric",
-      power: 65,
-      accuracy: 100,
-    },
-  });
-
-  const leafStrike = await prisma.move.create({
-    data: {
-      name: "Leaf Strike",
-      type: "Grass",
-      power: 60,
-      accuracy: 100,
-    },
-  });
-
-  /**
-   * Create creatures.
-   */
-  const burnix = await prisma.creature.create({
-    data: {
-      name: "Burnix",
-      type: "Fire",
-      hp: 70,
-      atk: 90,
-      def: 60,
-      spd: 80,
-    },
-  });
-
-  const hydrake = await prisma.creature.create({
-    data: {
-      name: "Hydrake",
-      type: "Water",
-      hp: 80,
-      atk: 75,
-      def: 70,
-      spd: 65,
-    },
-  });
-
-  const zapika = await prisma.creature.create({
-    data: {
-      name: "Zapika",
-      type: "Electric",
-      hp: 60,
-      atk: 85,
-      def: 50,
-      spd: 95,
-    },
-  });
-
-  const thornon = await prisma.creature.create({
-    data: {
-      name: "Thornon",
-      type: "Grass",
-      hp: 75,
-      atk: 70,
-      def: 80,
-      spd: 60,
-    },
-  });
-
-  /**
-   * Link creatures to their moves.
-   */
-  await prisma.creatureMove.createMany({
+  await prisma.move.createMany({
     data: [
-      { creatureId: burnix.id, moveId: flameSlash.id },
-      { creatureId: hydrake.id, moveId: aquaBlast.id },
-      { creatureId: zapika.id, moveId: thunderCut.id },
-      { creatureId: thornon.id, moveId: leafStrike.id },
+      { name: "Flame Burst", type: "Fire", power: 70, accuracy: 95 },
+      { name: "Inferno Slash", type: "Fire", power: 85, accuracy: 90 },
+
+      { name: "Aqua Shot", type: "Water", power: 65, accuracy: 100 },
+      { name: "Tidal Crash", type: "Water", power: 85, accuracy: 90 },
+
+      { name: "Vine Lash", type: "Grass", power: 70, accuracy: 100 },
+      { name: "Thorn Spike", type: "Grass", power: 80, accuracy: 90 },
+
+      { name: "Volt Strike", type: "Electric", power: 75, accuracy: 95 },
+      { name: "Thunder Crash", type: "Electric", power: 90, accuracy: 85 },
+
+      { name: "Rock Slam", type: "Earth", power: 80, accuracy: 90 },
+      { name: "Quake Smash", type: "Earth", power: 95, accuracy: 85 },
+
+      { name: "Quick Hit", type: "Normal", power: 40, accuracy: 100 },
+      { name: "Heavy Strike", type: "Normal", power: 85, accuracy: 90 },
+      { name: "Focus Boost", type: "Normal", power: 0, accuracy: 100 },
+      { name: "Guard Up", type: "Normal", power: 0, accuracy: 100 },
+      { name: "Speed Up", type: "Normal", power: 0, accuracy: 100 },
+      { name: "Recover", type: "Normal", power: 0, accuracy: 100 }
     ],
   });
 
-  /**
-   * Create a test user.
-   */
+  await prisma.creature.createMany({
+    data: [
+      { name: "Burnix", type: "Fire", hp: 60, atk: 85, def: 50, spd: 110 },
+      { name: "Hydrake", type: "Water", hp: 80, atk: 70, def: 75, spd: 70 },
+      { name: "Thornon", type: "Grass", hp: 95, atk: 70, def: 100, spd: 40 },
+      { name: "Zapika", type: "Electric", hp: 55, atk: 75, def: 50, spd: 115 },
+      { name: "Terruinox", type: "Earth", hp: 100, atk: 90, def: 110, spd: 30 },
+      { name: "Originox", type: "Normal", hp: 75, atk: 75, def: 75, spd: 75 },
+
+      { name: "Sawrch", type: "Fire", hp: 50, atk: 65, def: 45, spd: 80 },
+      { name: "Sawgnite", type: "Fire", hp: 80, atk: 95, def: 70, spd: 95 },
+
+      { name: "Voltix", type: "Electric", hp: 45, atk: 60, def: 40, spd: 90 },
+      { name: "Cleavolt", type: "Electric", hp: 75, atk: 85, def: 65, spd: 110 }
+    ],
+  });
+
+  const moves = await prisma.move.findMany();
+  const creatures = await prisma.creature.findMany();
+
+  const m = (n: string) => moves.find(x => x.name === n)!;
+  const c = (n: string) => creatures.find(x => x.name === n)!;
+
+  await prisma.creatureMove.createMany({
+    data: [
+      { creatureId: c("Burnix").id, moveId: m("Flame Burst").id },
+      { creatureId: c("Burnix").id, moveId: m("Quick Hit").id },
+
+      { creatureId: c("Hydrake").id, moveId: m("Aqua Shot").id },
+      { creatureId: c("Hydrake").id, moveId: m("Tidal Crash").id },
+
+      { creatureId: c("Thornon").id, moveId: m("Vine Lash").id },
+      { creatureId: c("Thornon").id, moveId: m("Thorn Spike").id },
+
+      { creatureId: c("Zapika").id, moveId: m("Volt Strike").id },
+      { creatureId: c("Zapika").id, moveId: m("Quick Hit").id },
+
+      { creatureId: c("Terruinox").id, moveId: m("Rock Slam").id },
+      { creatureId: c("Terruinox").id, moveId: m("Quake Smash").id },
+
+      { creatureId: c("Originox").id, moveId: m("Quick Hit").id },
+      { creatureId: c("Originox").id, moveId: m("Recover").id },
+
+      { creatureId: c("Sawrch").id, moveId: m("Flame Burst").id },
+      { creatureId: c("Sawrch").id, moveId: m("Focus Boost").id },
+
+      { creatureId: c("Sawgnite").id, moveId: m("Inferno Slash").id },
+      { creatureId: c("Sawgnite").id, moveId: m("Heavy Strike").id },
+
+      { creatureId: c("Voltix").id, moveId: m("Volt Strike").id },
+      { creatureId: c("Voltix").id, moveId: m("Speed Up").id },
+
+      { creatureId: c("Cleavolt").id, moveId: m("Thunder Crash").id },
+      { creatureId: c("Cleavolt").id, moveId: m("Heavy Strike").id }
+    ],
+  });
+
   const user = await prisma.user.create({
     data: {
       username: "ZoRoEmiya",
-      passwordHash: "123",
-    },
+      passwordHash: "123"
+    }
   });
 
-  /**
-   * Create a team for the user.
-   */
   const team = await prisma.team.create({
     data: {
-      name: "Starter Squad",
-      userId: user.id,
-    },
+      name: "ZoRo Team",
+      userId: user.id
+    }
   });
 
-  /**
-   * Assign creatures to the team.
-   */
   await prisma.teamCreature.createMany({
     data: [
-      {
-        teamId: team.id,
-        creatureId: burnix.id,
-        slot: 1,
-        currentHp: burnix.hp,
-      },
-      {
-        teamId: team.id,
-        creatureId: hydrake.id,
-        slot: 2,
-        currentHp: hydrake.hp,
-      },
-      {
-        teamId: team.id,
-        creatureId: zapika.id,
-        slot: 3,
-        currentHp: zapika.hp,
-      },
+      { teamId: team.id, creatureId: c("Burnix").id, slot: 1, currentHp: 60 },
+      { teamId: team.id, creatureId: c("Zapika").id, slot: 2, currentHp: 55 },
+      { teamId: team.id, creatureId: c("Voltix").id, slot: 3, currentHp: 45 }
     ],
   });
-
-  console.log("Seed completed successfully");
 }
 
-/**
- * Entry point for the seed script.
- */
 main()
-  .catch((error) => {
-    console.error(error);
-    return Promise.reject(error);
-  })
+  .catch(console.error)
   .finally(async () => {
     await prisma.$disconnect();
   });
