@@ -8,13 +8,8 @@ function getFirstActor(player1, player2, move1, move2) {
   const move1Priority = isPriorityMove(move1);
   const move2Priority = isPriorityMove(move2);
 
-  if (move1Priority && !move2Priority) {
-    return [player1, player2, move1, move2];
-  }
-
-  if (!move1Priority && move2Priority) {
-    return [player2, player1, move2, move1];
-  }
+  if (move1Priority && !move2Priority) return [player1, player2, move1, move2];
+  if (!move1Priority && move2Priority) return [player2, player1, move2, move1];
 
   if (player1.creature.spd >= player2.creature.spd) {
     return [player1, player2, move1, move2];
@@ -27,9 +22,91 @@ function applyDamage(target, damage) {
   target.currentHp = Math.max(target.currentHp - damage, 0);
 }
 
+function heal(player, amount) {
+  const maxHp = player.creature.hp;
+  const healedAmount = Math.floor(maxHp * amount);
+  player.currentHp = Math.min(player.currentHp + healedAmount, maxHp);
+  return healedAmount;
+}
+
+function applyBuff(player, stat) {
+  if (!player.modifiers) {
+    player.modifiers = {
+      atk: 1,
+      def: 1,
+      spd: 1
+    };
+  }
+
+  player.modifiers[stat] = Math.min(player.modifiers[stat] + 0.5, 2);
+}
+
+function getModifiedCreature(player) {
+  const modifiers = player.modifiers || { atk: 1, def: 1, spd: 1 };
+
+  return {
+    ...player.creature,
+    atk: Math.floor(player.creature.atk * modifiers.atk),
+    def: Math.floor(player.creature.def * modifiers.def),
+    spd: Math.floor(player.creature.spd * modifiers.spd)
+  };
+}
+
+function resolveStatusMove(player, move) {
+  if (move.name === "Focus Boost") {
+    applyBuff(player, "atk");
+    return {
+      attacker: player.creature.name,
+      move: move.name,
+      effect: "ATK increased",
+      hit: true
+    };
+  }
+
+  if (move.name === "Guard Up") {
+    applyBuff(player, "def");
+    return {
+      attacker: player.creature.name,
+      move: move.name,
+      effect: "DEF increased",
+      hit: true
+    };
+  }
+
+  if (move.name === "Speed Up") {
+    applyBuff(player, "spd");
+    return {
+      attacker: player.creature.name,
+      move: move.name,
+      effect: "SPD increased",
+      hit: true
+    };
+  }
+
+  if (move.name === "Recover") {
+    const healedAmount = heal(player, 0.5);
+    return {
+      attacker: player.creature.name,
+      move: move.name,
+      effect: "HP restored",
+      healedAmount,
+      currentHp: player.currentHp,
+      hit: true
+    };
+  }
+
+  return null;
+}
+
 function resolveMove(attackerPlayer, defenderPlayer, move) {
-  const attacker = attackerPlayer.creature;
-  const defender = defenderPlayer.creature;
+  const statusResult = resolveStatusMove(attackerPlayer, move);
+
+  if (statusResult) {
+    return statusResult;
+  }
+
+  const attacker = getModifiedCreature(attackerPlayer);
+  const defender = getModifiedCreature(defenderPlayer);
 
   const result = {
     attacker: attacker.name,
@@ -48,7 +125,6 @@ function resolveMove(attackerPlayer, defenderPlayer, move) {
   }
 
   const damage = calculateDamage(attacker, defender, move);
-
   applyDamage(defenderPlayer, damage);
 
   result.hit = true;
@@ -69,27 +145,18 @@ function resolveTurn(player1, player2, move1, move2) {
   logs.push(firstResult);
 
   if (secondPlayer.currentHp <= 0) {
-    return {
-      logs,
-      player1,
-      player2,
-      turnEnded: true
-    };
+    return { logs, player1, player2, turnEnded: true };
   }
 
   const secondResult = resolveMove(secondPlayer, firstPlayer, secondMove);
   logs.push(secondResult);
 
-  return {
-    logs,
-    player1,
-    player2,
-    turnEnded: true
-  };
+  return { logs, player1, player2, turnEnded: true };
 }
 
 module.exports = {
   resolveTurn,
   getFirstActor,
-  resolveMove
+  resolveMove,
+  getModifiedCreature
 };
