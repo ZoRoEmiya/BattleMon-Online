@@ -1,5 +1,8 @@
+import CreaturesPage from "./pages/CreaturesPage";
+import "./index.css";
+
 function App() {
-  return <h1>BattleMon Online</h1>;
+  return <CreaturesPage />;
 }
 
 export default App;
