@@ -11,6 +11,7 @@ import TeamBuilderPage from "./pages/TeamBuilderPage";
 import BattlePage from "./pages/BattlePage";
 import BattleHistoryPage from "./pages/BattleHistoryPage";
 import LoginPage from "./pages/LoginPage";
+import MultiplayerPage from "./pages/MultiplayerPage";
 import RegisterPage from "./pages/RegisterPage";
 
 const TOKEN_STORAGE_KEY = "battlemonToken";
@@ -125,6 +126,15 @@ function App() {
         <BattleHistoryPage
           currentUser={currentUser}
           token={token}
+        />
+      );
+    }
+
+    if (currentPage === "multiplayer") {
+      return (
+        <MultiplayerPage
+          currentUser={currentUser}
+          selectedTeam={selectedTeam}
         />
       );
     }
