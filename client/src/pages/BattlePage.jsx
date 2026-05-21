@@ -64,6 +64,10 @@ function isTeamDefeated(team) {
 }
 
 function formatAction(action) {
+  if (action.action === "switch") {
+    return `Player switched to ${action.creature}.`;
+  }
+
   if (!action.hit) {
     return `${action.attacker} used ${action.move}, but it missed.`;
   }
@@ -158,27 +162,104 @@ function BattlePage({ selectedTeam = [] }) {
     };
   }, [selectedTeam]);
 
-  function appendLog(message) {
+  function appendMessage(message) {
     setLogs((currentLogs) => [...currentLogs, { message }]);
   }
 
-  function handleSwitch(index) {
+  function appendTurn(actions, messages = []) {
+    setLogs((currentLogs) => {
+      const turnNumber =
+        currentLogs.filter((entry) => entry.actions).length + 1;
+
+      return [...currentLogs, { turnNumber, actions, messages }];
+    });
+  }
+
+  async function handleSwitch(index) {
     const nextCreature = playerTeam[index];
 
-    if (!nextCreature || nextCreature.fainted || index === activePlayerIndex) {
+    if (
+      !nextCreature ||
+      nextCreature.fainted ||
+      index === activePlayerIndex ||
+      battleFinished ||
+      isLoading
+    ) {
       return;
     }
 
-    const previousName = activePlayer?.creature.name;
+    if (playerMustSwitch) {
+      setActivePlayerIndex(index);
+      setBattleState(null);
+      setError("");
+      appendMessage(`Player switched to ${nextCreature.creature.name}.`);
+      return;
+    }
 
-    setActivePlayerIndex(index);
-    setBattleState(null);
+    const enemyMove = getCreatureMoves(activeEnemy.creature)[0];
+
+    if (!enemyMove) {
+      setError("Enemy has no available moves.");
+      return;
+    }
+
+    setIsLoading(true);
     setError("");
 
-    if (previousName) {
-      appendLog(
-        `Player switched from ${previousName} to ${nextCreature.creature.name}.`
+    try {
+      const previousLogCount = battleState?.logs?.length || 0;
+      const battle = await playTurn({
+        battleState,
+        player1: createBattlePlayer(nextCreature, 1, "Player 1"),
+        player2: createBattlePlayer(activeEnemy, 2, "Player 2"),
+        move2: enemyMove,
+        player1Action: "switch"
+      });
+
+      const nextPlayerTeam = [...playerTeam];
+      const nextEnemyTeam = [...enemyTeam];
+
+      nextPlayerTeam[index] = updateTeamMember(
+        nextPlayerTeam[index],
+        battle.player1
       );
+      nextEnemyTeam[activeEnemyIndex] = updateTeamMember(
+        nextEnemyTeam[activeEnemyIndex],
+        battle.player2
+      );
+
+      const turnActions = battle.logs
+        .slice(previousLogCount)
+        .flatMap((turn) => turn.actions);
+      const turnMessages = [];
+      const playerDefeated = isTeamDefeated(nextPlayerTeam);
+      let nextBattleState = battle.status === "finished" ? null : battle;
+
+      if (nextPlayerTeam[index].fainted && !playerDefeated) {
+        turnMessages.push(
+          `${nextPlayerTeam[index].creature.name} fainted. Choose another creature.`
+        );
+        nextBattleState = null;
+      }
+
+      if (playerDefeated) {
+        turnMessages.push("Player 2 wins the battle!");
+        nextBattleState = {
+          ...battle,
+          status: "finished",
+          winner: "Player 2"
+        };
+      }
+
+      setPlayerTeam(nextPlayerTeam);
+      setEnemyTeam(nextEnemyTeam);
+      setActivePlayerIndex(index);
+      setBattleState(nextBattleState);
+      appendTurn(turnActions, turnMessages);
+    } catch {
+      setError("Could not switch creatures. Make sure the server is running.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -219,8 +300,10 @@ function BattlePage({ selectedTeam = [] }) {
         battle.player2
       );
 
-      const nextLogs = battle.logs.slice(previousLogCount);
-      const extraLogs = [];
+      const turnActions = battle.logs
+        .slice(previousLogCount)
+        .flatMap((turn) => turn.actions);
+      const turnMessages = [];
       const playerDefeated = isTeamDefeated(nextPlayerTeam);
       const enemyDefeated = isTeamDefeated(nextEnemyTeam);
       let nextBattleState = battle.status === "finished" ? null : battle;
@@ -228,22 +311,22 @@ function BattlePage({ selectedTeam = [] }) {
 
       if (nextEnemyTeam[activeEnemyIndex].fainted && !enemyDefeated) {
         nextActiveEnemyIndex = getFirstAvailableIndex(nextEnemyTeam);
-        extraLogs.push({
-          message: `Enemy sent out ${nextEnemyTeam[nextActiveEnemyIndex].creature.name}.`
-        });
+        turnMessages.push(
+          `Enemy sent out ${nextEnemyTeam[nextActiveEnemyIndex].creature.name}.`
+        );
         nextBattleState = null;
       }
 
       if (nextPlayerTeam[activePlayerIndex].fainted && !playerDefeated) {
-        extraLogs.push({
-          message: `${nextPlayerTeam[activePlayerIndex].creature.name} fainted. Choose another creature.`
-        });
+        turnMessages.push(
+          `${nextPlayerTeam[activePlayerIndex].creature.name} fainted. Choose another creature.`
+        );
         nextBattleState = null;
       }
 
       if (enemyDefeated || playerDefeated) {
         const battleWinner = enemyDefeated ? "Player 1" : "Player 2";
-        extraLogs.push({ message: `${battleWinner} wins the battle!` });
+        turnMessages.push(`${battleWinner} wins the battle!`);
         nextBattleState = {
           ...battle,
           status: "finished",
@@ -255,7 +338,7 @@ function BattlePage({ selectedTeam = [] }) {
       setEnemyTeam(nextEnemyTeam);
       setActiveEnemyIndex(nextActiveEnemyIndex);
       setBattleState(nextBattleState);
-      setLogs((currentLogs) => [...currentLogs, ...nextLogs, ...extraLogs]);
+      appendTurn(turnActions, turnMessages);
     } catch {
       setError("Could not play the turn. Make sure the server is running.");
     } finally {
@@ -388,9 +471,12 @@ function BattlePage({ selectedTeam = [] }) {
               <p>{entry.message}</p>
             ) : (
               <>
-                <strong>Turn {index + 1}</strong>
+                <strong>Turn {entry.turnNumber}</strong>
                 {entry.actions.map((action, actionIndex) => (
                   <p key={`${index}-${actionIndex}`}>{formatAction(action)}</p>
+                ))}
+                {entry.messages.map((message, messageIndex) => (
+                  <p key={`${index}-message-${messageIndex}`}>{message}</p>
                 ))}
               </>
             )}

@@ -17,7 +17,7 @@ function MenuPage({ onNavigate }) {
         </button>
 
         <button onClick={() => onNavigate("battle")}>
-          Start Test Battle
+          Start Battle
         </button>
       </div>
     </div>

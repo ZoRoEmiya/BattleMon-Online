@@ -1,4 +1,4 @@
-const { resolveTurn } = require("./turnResolver");
+const { resolveMove, resolveTurn } = require("./turnResolver");
 
 function createBattleState(player1, player2) {
   return {
@@ -60,8 +60,42 @@ function playTurn(battleState, player1Move, player2Move) {
   return battleState;
 }
 
+function playSwitchTurn(battleState, switchedPlayer1, player2Move) {
+  if (battleState.status === "finished") {
+    return battleState;
+  }
+
+  battleState.player1 = switchedPlayer1;
+
+  const switchAction = {
+    action: "switch",
+    player: battleState.player1.name,
+    creature: battleState.player1.creature.name,
+    hit: true
+  };
+  const enemyAction = resolveMove(
+    battleState.player2,
+    battleState.player1,
+    player2Move
+  );
+
+  battleState.logs.push({
+    turnNumber: battleState.turnNumber,
+    actions: [switchAction, enemyAction]
+  });
+
+  checkWinner(battleState);
+
+  if (battleState.status !== "finished") {
+    battleState.turnNumber += 1;
+  }
+
+  return battleState;
+}
+
 module.exports = {
   createBattleState,
   playTurn,
+  playSwitchTurn,
   checkWinner
 };
