@@ -1,7 +1,12 @@
 function CreatureCard({ creature }) {
   return (
     <div className="creature-card">
+      <div className="sprite-placeholder">
+        {creature.name.charAt(0)}
+      </div>
+
       <h2>{creature.name}</h2>
+
       <p>Type: {creature.type}</p>
       <p>HP: {creature.hp}</p>
       <p>ATK: {creature.atk}</p>
@@ -9,6 +14,7 @@ function CreatureCard({ creature }) {
       <p>SPD: {creature.spd}</p>
 
       <h3>Moves</h3>
+
       <ul>
         {creature.moves.map((item) => (
           <li key={item.id}>
