@@ -20,6 +20,10 @@ function MenuPage({ currentUser, onNavigate }) {
           Start Battle
         </button>
 
+        <button onClick={() => onNavigate("battle-history")}>
+          Battle History
+        </button>
+
         {!currentUser && (
           <>
             <button onClick={() => onNavigate("login")}>

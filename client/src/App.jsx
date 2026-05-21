@@ -9,6 +9,7 @@ import MenuPage from "./pages/MenuPage";
 import CreaturesPage from "./pages/CreaturesPage";
 import TeamBuilderPage from "./pages/TeamBuilderPage";
 import BattlePage from "./pages/BattlePage";
+import BattleHistoryPage from "./pages/BattleHistoryPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 
@@ -110,10 +111,30 @@ function App() {
     }
 
     if (currentPage === "battle") {
-      return <BattlePage selectedTeam={selectedTeam} />;
+      return (
+        <BattlePage
+          currentUser={currentUser}
+          selectedTeam={selectedTeam}
+          token={token}
+        />
+      );
     }
 
-    return <MenuPage onNavigate={setCurrentPage} />;
+    if (currentPage === "battle-history") {
+      return (
+        <BattleHistoryPage
+          currentUser={currentUser}
+          token={token}
+        />
+      );
+    }
+
+    return (
+      <MenuPage
+        currentUser={currentUser}
+        onNavigate={setCurrentPage}
+      />
+    );
   }
 
   return (

@@ -15,6 +15,7 @@ model User {
   teams    Team[]
   battles1 Battle[] @relation("Player1")
   battles2 Battle[] @relation("Player2")
+  battleHistories BattleHistory[]
 }
 
 model Creature {
@@ -95,4 +96,17 @@ model BattleTurn {
   actionData String
 
   battle Battle @relation(fields: [battleId], references: [id])
+}
+
+model BattleHistory {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  opponentName String
+  result       String
+  status       String
+  logs         String
+  createdAt    DateTime @default(now())
+  endedAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id])
 }

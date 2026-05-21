@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
 import { getCreatures } from "../api/creatureApi";
-import { getMyTeam, saveMyTeam } from "../api/teamApi";
+import {
+  createTeam,
+  deleteTeam,
+  getMyTeams,
+  updateTeam
+} from "../api/teamApi";
 
 const TEAM_SIZE = 3;
 
 function TeamBuilderPage({ currentUser, selectedTeam, setSelectedTeam, token }) {
   const [creatures, setCreatures] = useState([]);
+  const [savedTeams, setSavedTeams] = useState([]);
+  const [teamName, setTeamName] = useState("");
+  const [activeSavedTeamId, setActiveSavedTeamId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [saveMessage, setSaveMessage] = useState("");
+  const [teamMessage, setTeamMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -28,36 +36,41 @@ function TeamBuilderPage({ currentUser, selectedTeam, setSelectedTeam, token }) 
 
   useEffect(() => {
     if (!currentUser || !token) {
-      setSaveMessage("");
+      setSavedTeams([]);
+      setActiveSavedTeamId(null);
+      setTeamMessage("");
       return;
     }
 
     let active = true;
 
-    async function loadSavedTeam() {
+    async function loadSavedTeams() {
       try {
-        const data = await getMyTeam(token);
+        const data = await getMyTeams(token);
 
-        if (active && data.team?.creatures?.length === TEAM_SIZE) {
-          setSelectedTeam(data.team.creatures);
-          setSaveMessage("Saved team loaded.");
+        if (active) {
+          setSavedTeams(data.teams);
         }
       } catch {
         if (active) {
-          setSaveMessage("Could not load saved team.");
+          setTeamMessage("Could not load saved teams.");
         }
       }
     }
 
-    loadSavedTeam();
+    loadSavedTeams();
 
     return () => {
       active = false;
     };
-  }, [currentUser, setSelectedTeam, token]);
+  }, [currentUser, token]);
 
   function isSelected(creature) {
     return selectedTeam.some((teamCreature) => teamCreature.id === creature.id);
+  }
+
+  function getSelectedCreatureIds() {
+    return selectedTeam.map((creature) => creature.id);
   }
 
   function selectCreature(creature) {
@@ -72,36 +85,119 @@ function TeamBuilderPage({ currentUser, selectedTeam, setSelectedTeam, token }) 
 
       return [...currentTeam, creature];
     });
+    setTeamMessage("");
   }
 
   function removeCreature(creatureId) {
     setSelectedTeam((currentTeam) =>
       currentTeam.filter((creature) => creature.id !== creatureId)
     );
+    setTeamMessage("");
   }
 
-  async function handleSaveTeam() {
+  function loadSavedTeam(team) {
+    setSelectedTeam(team.creatures);
+    setTeamName(team.name);
+    setActiveSavedTeamId(team.id);
+    setTeamMessage(`${team.name} loaded.`);
+  }
+
+  async function refreshSavedTeams(nextActiveTeamId) {
+    const data = await getMyTeams(token);
+    setSavedTeams(data.teams);
+
+    if (nextActiveTeamId) {
+      setActiveSavedTeamId(nextActiveTeamId);
+    }
+  }
+
+  async function handleSaveNewTeam() {
     if (!currentUser || !token) {
       return;
     }
 
     if (selectedTeam.length !== TEAM_SIZE) {
-      setSaveMessage("Choose exactly 3 creatures before saving.");
+      setTeamMessage("Choose exactly 3 creatures before saving.");
+      return;
+    }
+
+    if (!teamName.trim()) {
+      setTeamMessage("Enter a team name before saving.");
       return;
     }
 
     setIsSaving(true);
-    setSaveMessage("");
+    setTeamMessage("");
 
     try {
-      const data = await saveMyTeam(
-        token,
-        selectedTeam.map((creature) => creature.id)
-      );
+      const data = await createTeam(token, {
+        name: teamName,
+        creatureIds: getSelectedCreatureIds()
+      });
+      await refreshSavedTeams(data.team.id);
       setSelectedTeam(data.team.creatures);
-      setSaveMessage("Team saved.");
+      setTeamName(data.team.name);
+      setTeamMessage(`${data.team.name} saved.`);
     } catch (err) {
-      setSaveMessage(err.response?.data?.error || "Could not save team.");
+      setTeamMessage(err.response?.data?.error || "Could not save team.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleUpdateTeam(team) {
+    if (!currentUser || !token) {
+      return;
+    }
+
+    if (selectedTeam.length !== TEAM_SIZE) {
+      setTeamMessage("Choose exactly 3 creatures before updating.");
+      return;
+    }
+
+    const nextName = activeSavedTeamId === team.id && teamName.trim()
+      ? teamName
+      : team.name;
+
+    setIsSaving(true);
+    setTeamMessage("");
+
+    try {
+      const data = await updateTeam(token, team.id, {
+        name: nextName,
+        creatureIds: getSelectedCreatureIds()
+      });
+      await refreshSavedTeams(data.team.id);
+      setSelectedTeam(data.team.creatures);
+      setTeamName(data.team.name);
+      setTeamMessage(`${data.team.name} updated.`);
+    } catch (err) {
+      setTeamMessage(err.response?.data?.error || "Could not update team.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleDeleteTeam(team) {
+    if (!currentUser || !token) {
+      return;
+    }
+
+    setIsSaving(true);
+    setTeamMessage("");
+
+    try {
+      await deleteTeam(token, team.id);
+      await refreshSavedTeams(null);
+
+      if (activeSavedTeamId === team.id) {
+        setActiveSavedTeamId(null);
+        setTeamName("");
+      }
+
+      setTeamMessage(`${team.name} deleted.`);
+    } catch (err) {
+      setTeamMessage(err.response?.data?.error || "Could not delete team.");
     } finally {
       setIsSaving(false);
     }
@@ -130,7 +226,7 @@ function TeamBuilderPage({ currentUser, selectedTeam, setSelectedTeam, token }) 
         )}
 
         {!currentUser && (
-          <p className="empty-team">Login to save this team.</p>
+          <p className="empty-team">Login to save and load teams.</p>
         )}
 
         <div className="team-slots">
@@ -144,17 +240,69 @@ function TeamBuilderPage({ currentUser, selectedTeam, setSelectedTeam, token }) 
         </div>
 
         {currentUser && (
-          <button
-            className="save-team-button"
-            onClick={handleSaveTeam}
-            disabled={isSaving || selectedTeam.length !== TEAM_SIZE}
-          >
-            {isSaving ? "Saving..." : "Save Team"}
-          </button>
+          <div className="team-save-panel">
+            <label>
+              Team Name
+              <input
+                value={teamName}
+                onChange={(event) => setTeamName(event.target.value)}
+                placeholder="Enter team name"
+              />
+            </label>
+
+            <button
+              className="save-team-button"
+              onClick={handleSaveNewTeam}
+              disabled={isSaving || selectedTeam.length !== TEAM_SIZE}
+            >
+              {isSaving ? "Saving..." : "Save New Team"}
+            </button>
+          </div>
         )}
 
-        {saveMessage && <p className="empty-team">{saveMessage}</p>}
+        {teamMessage && <p className="empty-team">{teamMessage}</p>}
       </section>
+
+      {currentUser && (
+        <section className="selected-team">
+          <div className="team-header">
+            <h2>Saved Teams</h2>
+            <span>{savedTeams.length}</span>
+          </div>
+
+          {savedTeams.length === 0 && (
+            <p className="empty-team">No saved teams yet.</p>
+          )}
+
+          <div className="saved-teams-list">
+            {savedTeams.map((team) => (
+              <div
+                className={`saved-team-card ${activeSavedTeamId === team.id ? "selected" : ""}`}
+                key={team.id}
+              >
+                <h3>{team.name}</h3>
+                <p>{team.creatures.map((creature) => creature.name).join(", ")}</p>
+
+                <div className="saved-team-actions">
+                  <button onClick={() => loadSavedTeam(team)}>Load</button>
+                  <button
+                    onClick={() => handleUpdateTeam(team)}
+                    disabled={isSaving || selectedTeam.length !== TEAM_SIZE}
+                  >
+                    Update
+                  </button>
+                  <button
+                    onClick={() => handleDeleteTeam(team)}
+                    disabled={isSaving}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="creatures-grid">
         {creatures.map((creature) => {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { saveBattleHistory } from "../api/battleHistoryApi";
 import { getCreatures } from "../api/creatureApi";
 import { playTurn } from "../api/battleApi";
 
@@ -84,13 +85,15 @@ function formatAction(action) {
   return `${action.attacker} used ${action.move}.`;
 }
 
-function BattlePage({ selectedTeam = [] }) {
+function BattlePage({ currentUser, selectedTeam = [], token }) {
   const [playerTeam, setPlayerTeam] = useState([]);
   const [enemyTeam, setEnemyTeam] = useState([]);
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [activeEnemyIndex, setActiveEnemyIndex] = useState(0);
   const [battleState, setBattleState] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [historyMessage, setHistoryMessage] = useState("");
+  const [savedHistoryKey, setSavedHistoryKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -114,6 +117,8 @@ function BattlePage({ selectedTeam = [] }) {
       setActiveEnemyIndex(0);
       setBattleState(null);
       setLogs([]);
+      setHistoryMessage("");
+      setSavedHistoryKey("");
       setError("");
       return;
     }
@@ -129,6 +134,8 @@ function BattlePage({ selectedTeam = [] }) {
       setActiveEnemyIndex(0);
       setBattleState(null);
       setLogs([]);
+      setHistoryMessage("");
+      setSavedHistoryKey("");
 
       try {
         const creatures = await getCreatures();
@@ -161,6 +168,55 @@ function BattlePage({ selectedTeam = [] }) {
       active = false;
     };
   }, [selectedTeam]);
+
+  useEffect(() => {
+    if (!winner || logs.length === 0) {
+      return;
+    }
+
+    const historyKey = `${winner}-${logs.length}`;
+
+    if (savedHistoryKey === historyKey) {
+      return;
+    }
+
+    let active = true;
+
+    async function saveCompletedBattle() {
+      if (!currentUser || !token) {
+        if (active) {
+          setHistoryMessage("Login to save battle history.");
+          setSavedHistoryKey(historyKey);
+        }
+        return;
+      }
+
+      try {
+        await saveBattleHistory(token, {
+          opponentName: "NPC",
+          result: winner === "Player 1" ? "Win" : "Loss",
+          status: "finished",
+          logs,
+          endedAt: new Date().toISOString()
+        });
+
+        if (active) {
+          setHistoryMessage("Battle history saved.");
+          setSavedHistoryKey(historyKey);
+        }
+      } catch {
+        if (active) {
+          setHistoryMessage("Could not save battle history.");
+        }
+      }
+    }
+
+    saveCompletedBattle();
+
+    return () => {
+      active = false;
+    };
+  }, [currentUser, logs, savedHistoryKey, token, winner]);
 
   function appendMessage(message) {
     setLogs((currentLogs) => [...currentLogs, { message }]);
@@ -376,6 +432,10 @@ function BattlePage({ selectedTeam = [] }) {
 
       {winner && (
         <h2 className="winner-message">Winner: {winner}</h2>
+      )}
+
+      {historyMessage && (
+        <p className="empty-team">{historyMessage}</p>
       )}
 
       {playerMustSwitch && (

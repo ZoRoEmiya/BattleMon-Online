@@ -32,6 +32,13 @@ function Navbar({ currentPage, currentUser, onLogout, onNavigate }) {
           Battle
         </button>
 
+        <button
+          className={currentPage === "battle-history" ? "active" : ""}
+          onClick={() => onNavigate("battle-history")}
+        >
+          Battle History
+        </button>
+
         {currentUser ? (
           <>
             <span className="nav-user">{currentUser.username}</span>

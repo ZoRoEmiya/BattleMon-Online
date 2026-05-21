@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
+const battleHistoryRoutes = require("./routes/battleHistoryRoutes");
 const battleRoutes = require("./routes/battleRoutes");
 const creatureRoutes = require("./routes/creatureRoutes");
 const teamRoutes = require("./routes/teamRoutes");
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/battle", battleRoutes);
+app.use("/api/battles", battleHistoryRoutes);
 app.use("/api/creatures", creatureRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/teams", teamRoutes);
