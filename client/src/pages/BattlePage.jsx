@@ -74,6 +74,7 @@ function formatAction(action) {
 }
 
 function BattlePage() {
+  const [battleState, setBattleState] = useState(null);
   const [player1, setPlayer1] = useState(initialPlayer1);
   const [player2, setPlayer2] = useState(initialPlayer2);
   const [logs, setLogs] = useState([]);
@@ -86,12 +87,14 @@ function BattlePage() {
 
     try {
       const battle = await playTestTurn({
+        battleState,
         player1,
         player2,
         move1,
         move2: moves.vineLash
       });
 
+      setBattleState(battle);
       setPlayer1(battle.player1);
       setPlayer2(battle.player2);
       setLogs(battle.logs);
@@ -105,6 +108,10 @@ function BattlePage() {
   return (
     <div className="page">
       <h1>Battle Arena</h1>
+
+      {battleState?.status === "finished" && (
+        <h2 className="winner-message">Winner: {battleState.winner}</h2>
+      )}
 
       <div className="arena">
         <div className="battle-side player-side">
@@ -147,10 +154,17 @@ function BattlePage() {
       </div>
 
       <div className="move-buttons">
-        <button onClick={() => handleMove(moves.flameBurst)} disabled={isLoading}>
+        <button
+          onClick={() => handleMove(moves.flameBurst)}
+          disabled={isLoading || battleState?.status === "finished"}
+        >
           Flame Burst
         </button>
-        <button onClick={() => handleMove(moves.quickHit)} disabled={isLoading}>
+
+        <button
+          onClick={() => handleMove(moves.quickHit)}
+          disabled={isLoading || battleState?.status === "finished"}
+        >
           Quick Hit
         </button>
       </div>
@@ -159,11 +173,12 @@ function BattlePage() {
         <h3>Battle Log</h3>
         {error && <p className="error-message">{error}</p>}
         {logs.length === 0 && !error && <p>Choose a move to start the battle.</p>}
-        {logs.map((turn) => (
-          <div key={turn.turnNumber}>
+
+        {logs.map((turn, index) => (
+          <div key={index}>
             <strong>Turn {turn.turnNumber}</strong>
-            {turn.actions.map((action, index) => (
-              <p key={`${turn.turnNumber}-${index}`}>{formatAction(action)}</p>
+            {turn.actions.map((action, actionIndex) => (
+              <p key={`${index}-${actionIndex}`}>{formatAction(action)}</p>
             ))}
           </div>
         ))}
