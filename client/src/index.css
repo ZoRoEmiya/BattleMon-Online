@@ -28,6 +28,8 @@ button {
 
 .nav-buttons {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -43,6 +45,11 @@ button {
 .nav-buttons button.active {
   background: #facc15;
   color: black;
+}
+
+.nav-user {
+  color: #facc15;
+  font-weight: bold;
 }
 
 .page {
@@ -151,7 +158,9 @@ button {
 }
 
 .team-slot button,
-.selectable-card button {
+.selectable-card button,
+.save-team-button,
+.auth-form button {
   background: #facc15;
   color: black;
   border: none;
@@ -176,6 +185,45 @@ button {
 .selectable-card button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.save-team-button {
+  margin-top: 16px;
+}
+
+.save-team-button:disabled,
+.auth-form button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-page {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.auth-form {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 12px;
+  padding: 20px;
+
+  display: grid;
+  gap: 16px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 8px;
+  color: #cbd5e1;
+}
+
+.auth-form input {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  color: white;
+  padding: 12px;
 }
 
 .battle-layout {

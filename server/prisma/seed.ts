@@ -97,28 +97,6 @@ async function main() {
       { creatureId: c("Cleavolt").id, moveId: m("Heavy Strike").id }
     ],
   });
-
-  const user = await prisma.user.create({
-    data: {
-      username: "ZoRoEmiya",
-      passwordHash: "123"
-    }
-  });
-
-  const team = await prisma.team.create({
-    data: {
-      name: "ZoRo Team",
-      userId: user.id
-    }
-  });
-
-  await prisma.teamCreature.createMany({
-    data: [
-      { teamId: team.id, creatureId: c("Burnix").id, slot: 1, currentHp: 60 },
-      { teamId: team.id, creatureId: c("Zapika").id, slot: 2, currentHp: 55 },
-      { teamId: team.id, creatureId: c("Voltix").id, slot: 3, currentHp: 45 }
-    ],
-  });
 }
 
 main()

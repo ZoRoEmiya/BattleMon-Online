@@ -1,4 +1,4 @@
-function Navbar({ currentPage, onNavigate }) {
+function Navbar({ currentPage, currentUser, onLogout, onNavigate }) {
   return (
     <nav className="navbar">
       <div className="logo">BattleMon Online</div>
@@ -31,6 +31,29 @@ function Navbar({ currentPage, onNavigate }) {
         >
           Battle
         </button>
+
+        {currentUser ? (
+          <>
+            <span className="nav-user">{currentUser.username}</span>
+            <button onClick={onLogout}>Logout</button>
+          </>
+        ) : (
+          <>
+            <button
+              className={currentPage === "login" ? "active" : ""}
+              onClick={() => onNavigate("login")}
+            >
+              Login
+            </button>
+
+            <button
+              className={currentPage === "register" ? "active" : ""}
+              onClick={() => onNavigate("register")}
+            >
+              Register
+            </button>
+          </>
+        )}
       </div>
     </nav>
   );

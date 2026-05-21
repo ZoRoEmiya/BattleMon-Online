@@ -1,4 +1,4 @@
-function MenuPage({ onNavigate }) {
+function MenuPage({ currentUser, onNavigate }) {
   return (
     <div className="menu-page">
       <h1>BattleMon Online</h1>
@@ -19,6 +19,18 @@ function MenuPage({ onNavigate }) {
         <button onClick={() => onNavigate("battle")}>
           Start Battle
         </button>
+
+        {!currentUser && (
+          <>
+            <button onClick={() => onNavigate("login")}>
+              Login
+            </button>
+
+            <button onClick={() => onNavigate("register")}>
+              Register
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
