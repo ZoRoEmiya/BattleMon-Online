@@ -160,6 +160,11 @@ button {
   border-radius: 10px;
 }
 
+.move-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .battle-log {
   margin-top: 40px;
 
@@ -168,6 +173,10 @@ button {
 
   border-radius: 12px;
   padding: 20px;
+}
+
+.error-message {
+  color: #fca5a5;
 }
 .sprite-placeholder {
   width: 96px;

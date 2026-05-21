@@ -12,7 +12,7 @@ function CreaturesPage() {
       try {
         const data = await getCreatures();
         setCreatures(data);
-      } catch (err) {
+      } catch {
         setError("Failed to load creatures");
       } finally {
         setLoading(false);
