@@ -53,9 +53,12 @@ Currently in development.
 
 - ✅ Core design complete  
 - ✅ Project setup done  
-- 🔜 Database + backend logic  
-- 🔜 Battle system  
-- 🔜 Multiplayer  
+- ✅ Database + backend logic  
+- ✅ Battle system  
+- ✅ Multiplayer  
+- 🔜 UI/UX improvements
+- 🔜 Testing
+- 🔜 All ready
 
 ---
 
