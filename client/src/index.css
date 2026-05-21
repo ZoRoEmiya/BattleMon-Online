@@ -225,6 +225,7 @@ button {
   margin-top: 40px;
 
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
 }
 
@@ -255,6 +256,33 @@ button {
 
 .error-message {
   color: #fca5a5;
+}
+
+.switch-section {
+  margin-top: 32px;
+}
+
+.switch-section h2 {
+  margin-bottom: 12px;
+}
+
+.switch-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.switch-buttons button {
+  background: #1f2937;
+  color: white;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.switch-buttons button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 .sprite-placeholder {
   width: 96px;
