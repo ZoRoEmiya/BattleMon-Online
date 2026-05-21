@@ -19,6 +19,13 @@ function Navbar({ currentPage, onNavigate }) {
         </button>
 
         <button
+          className={currentPage === "team-builder" ? "active" : ""}
+          onClick={() => onNavigate("team-builder")}
+        >
+          Team Builder
+        </button>
+
+        <button
           className={currentPage === "battle" ? "active" : ""}
           onClick={() => onNavigate("battle")}
         >

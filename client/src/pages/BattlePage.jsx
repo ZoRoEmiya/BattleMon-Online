@@ -1,20 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { playTestTurn } from "../api/battleApi";
-
-const initialPlayer1 = {
-  id: 1,
-  name: "Player 1",
-  currentHp: 60,
-  modifiers: { atk: 1, def: 1, spd: 1 },
-  creature: {
-    name: "Burnix",
-    type: "Fire",
-    hp: 60,
-    atk: 85,
-    def: 50,
-    spd: 110
-  }
-};
 
 const initialPlayer2 = {
   id: 2,
@@ -31,29 +16,29 @@ const initialPlayer2 = {
   }
 };
 
-const moves = {
-  flameBurst: {
-    name: "Flame Burst",
-    type: "Fire",
-    power: 70,
-    accuracy: 95
-  },
-  quickHit: {
-    name: "Quick Hit",
-    type: "Normal",
-    power: 40,
-    accuracy: 100
-  },
-  vineLash: {
-    name: "Vine Lash",
-    type: "Grass",
-    power: 70,
-    accuracy: 100
-  }
+const enemyMove = {
+  name: "Vine Lash",
+  type: "Grass",
+  power: 70,
+  accuracy: 100
 };
 
 function getHpPercent(player) {
   return Math.max((player.currentHp / player.creature.hp) * 100, 0);
+}
+
+function createPlayerFromCreature(creature) {
+  return {
+    id: 1,
+    name: "Player 1",
+    currentHp: creature.hp,
+    modifiers: { atk: 1, def: 1, spd: 1 },
+    creature
+  };
+}
+
+function getCreatureMoves(creature) {
+  return creature.moves.map((item) => item.move);
 }
 
 function formatAction(action) {
@@ -73,13 +58,33 @@ function formatAction(action) {
   return `${action.attacker} used ${action.move}.`;
 }
 
-function BattlePage() {
+function BattlePage({ selectedTeam }) {
   const [battleState, setBattleState] = useState(null);
-  const [player1, setPlayer1] = useState(initialPlayer1);
+  const [player1, setPlayer1] = useState(
+    selectedTeam[0] ? createPlayerFromCreature(selectedTeam[0]) : null
+  );
   const [player2, setPlayer2] = useState(initialPlayer2);
   const [logs, setLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const playerMoves = player1 ? getCreatureMoves(player1.creature) : [];
+
+  useEffect(() => {
+    if (!selectedTeam[0]) {
+      setBattleState(null);
+      setPlayer1(null);
+      setPlayer2(initialPlayer2);
+      setLogs([]);
+      setError("");
+      return;
+    }
+
+    setBattleState(null);
+    setPlayer1(createPlayerFromCreature(selectedTeam[0]));
+    setPlayer2(initialPlayer2);
+    setLogs([]);
+    setError("");
+  }, [selectedTeam]);
 
   async function handleMove(move1) {
     setIsLoading(true);
@@ -91,7 +96,7 @@ function BattlePage() {
         player1,
         player2,
         move1,
-        move2: moves.vineLash
+        move2: enemyMove
       });
 
       setBattleState(battle);
@@ -103,6 +108,17 @@ function BattlePage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (selectedTeam.length !== 3) {
+    return (
+      <div className="page">
+        <h1>Battle Arena</h1>
+        <p className="empty-team">
+          Build a team of 3 creatures first, then come back to start a battle.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -154,19 +170,15 @@ function BattlePage() {
       </div>
 
       <div className="move-buttons">
-        <button
-          onClick={() => handleMove(moves.flameBurst)}
-          disabled={isLoading || battleState?.status === "finished"}
-        >
-          Flame Burst
-        </button>
-
-        <button
-          onClick={() => handleMove(moves.quickHit)}
-          disabled={isLoading || battleState?.status === "finished"}
-        >
-          Quick Hit
-        </button>
+        {playerMoves.map((move) => (
+          <button
+            key={move.id || move.name}
+            onClick={() => handleMove(move)}
+            disabled={isLoading || battleState?.status === "finished"}
+          >
+            {move.name}
+          </button>
+        ))}
       </div>
 
       <div className="battle-log">

@@ -12,6 +12,10 @@ function MenuPage({ onNavigate }) {
           View Creatures
         </button>
 
+        <button onClick={() => onNavigate("team-builder")}>
+          Team Builder
+        </button>
+
         <button onClick={() => onNavigate("battle")}>
           Start Test Battle
         </button>

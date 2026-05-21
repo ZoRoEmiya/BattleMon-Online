@@ -100,6 +100,84 @@ button {
   color: #facc15;
 }
 
+.selected-team {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.team-header h2 {
+  margin: 0;
+}
+
+.team-header span {
+  color: #facc15;
+  font-weight: bold;
+}
+
+.empty-team {
+  color: #cbd5e1;
+}
+
+.team-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.team-slot {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 14px;
+  min-width: 180px;
+
+  display: grid;
+  gap: 8px;
+}
+
+.team-slot span {
+  color: #cbd5e1;
+}
+
+.team-slot button,
+.selectable-card button {
+  background: #facc15;
+  color: black;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: bold;
+}
+
+.selectable-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.selectable-card.selected {
+  border-color: #facc15;
+}
+
+.selectable-card button {
+  margin-top: auto;
+}
+
+.selectable-card button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .battle-layout {
   display: flex;
   justify-content: space-between;

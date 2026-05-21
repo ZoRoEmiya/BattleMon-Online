@@ -6,10 +6,12 @@ import Navbar from "./components/Navbar";
 
 import MenuPage from "./pages/MenuPage";
 import CreaturesPage from "./pages/CreaturesPage";
+import TeamBuilderPage from "./pages/TeamBuilderPage";
 import BattlePage from "./pages/BattlePage";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("menu");
+  const [selectedTeam, setSelectedTeam] = useState([]);
 
   function renderPage() {
     if (currentPage === "menu") {
@@ -20,8 +22,17 @@ function App() {
       return <CreaturesPage />;
     }
 
+    if (currentPage === "team-builder") {
+      return (
+        <TeamBuilderPage
+          selectedTeam={selectedTeam}
+          setSelectedTeam={setSelectedTeam}
+        />
+      );
+    }
+
     if (currentPage === "battle") {
-      return <BattlePage />;
+      return <BattlePage selectedTeam={selectedTeam} />;
     }
 
     return <MenuPage onNavigate={setCurrentPage} />;
