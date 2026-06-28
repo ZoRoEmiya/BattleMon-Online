@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import { saveBattleHistory } from "../api/battleHistoryApi";
 
 const TEAM_SIZE = 3;
 const SOCKET_URL = "http://localhost:3000";
@@ -33,11 +34,13 @@ function formatAction(action) {
   return `${action.attacker} used ${action.move}.`;
 }
 
-function MultiplayerPage({ currentUser, selectedTeam = [] }) {
+function MultiplayerPage({ currentUser, selectedTeam = [], token }) {
   const socketRef = useRef(null);
+  const savedHistoryKeyRef = useRef("");
   const [battle, setBattle] = useState(null);
   const [queueStatus, setQueueStatus] = useState("");
   const [error, setError] = useState("");
+  const [historyMessage, setHistoryMessage] = useState("");
   const [actionSubmitted, setActionSubmitted] = useState(false);
 
   const activePlayer = battle?.playerTeam?.[battle.activePlayerIndex];
@@ -58,6 +61,8 @@ function MultiplayerPage({ currentUser, selectedTeam = [] }) {
       setBattle(state);
       setQueueStatus("Match found.");
       setActionSubmitted(false);
+      setHistoryMessage("");
+      savedHistoryKeyRef.current = "";
       setError("");
     });
 
@@ -83,6 +88,63 @@ function MultiplayerPage({ currentUser, selectedTeam = [] }) {
     };
   }, [currentUser]);
 
+  useEffect(() => {
+    if (!battleFinished || !battle?.roomId || !battle?.winner) {
+      return;
+    }
+
+    const historyKey = `${battle.roomId}-${battle.winner}`;
+
+    if (savedHistoryKeyRef.current === historyKey) {
+      return;
+    }
+
+    savedHistoryKeyRef.current = historyKey;
+
+    let active = true;
+
+    async function saveCompletedBattle() {
+      if (!currentUser || !token) {
+        if (active) {
+          setHistoryMessage("Login to save battle history.");
+        }
+        return;
+      }
+
+      try {
+        await saveBattleHistory(token, {
+          opponentName: battle.opponentName,
+          result: battle.winner === currentUser.username ? "Win" : "Loss",
+          status: "finished",
+          logs: battle.logs,
+          endedAt: new Date().toISOString()
+        });
+
+        if (active) {
+          setHistoryMessage("Battle history saved.");
+        }
+      } catch {
+        if (active) {
+          setHistoryMessage("Could not save multiplayer battle history.");
+        }
+      }
+    }
+
+    saveCompletedBattle();
+
+    return () => {
+      active = false;
+    };
+  }, [
+    battle?.logs,
+    battle?.opponentName,
+    battle?.roomId,
+    battle?.winner,
+    battleFinished,
+    currentUser,
+    token
+  ]);
+
   function handleFindMatch() {
     if (!socketRef.current) {
       setError("Could not connect to multiplayer server.");
@@ -95,6 +157,8 @@ function MultiplayerPage({ currentUser, selectedTeam = [] }) {
     });
     setBattle(null);
     setQueueStatus("Searching for match...");
+    setHistoryMessage("");
+    savedHistoryKeyRef.current = "";
     setError("");
   }
 
@@ -162,6 +226,7 @@ function MultiplayerPage({ currentUser, selectedTeam = [] }) {
 
       {queueStatus && <p className="empty-team">{queueStatus}</p>}
       {error && <p className="error-message">{error}</p>}
+      {historyMessage && <p className="empty-team">{historyMessage}</p>}
       {actionSubmitted && !battleFinished && (
         <p className="empty-team">Action submitted. Waiting for opponent...</p>
       )}

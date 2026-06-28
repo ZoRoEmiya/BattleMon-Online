@@ -1,4 +1,11 @@
-function Navbar({ currentPage, currentUser, onLogout, onNavigate }) {
+function Navbar({
+  currentPage,
+  currentUser,
+  theme,
+  onLogout,
+  onNavigate,
+  onToggleTheme
+}) {
   return (
     <nav className="navbar">
       <div className="logo">BattleMon Online</div>
@@ -44,6 +51,14 @@ function Navbar({ currentPage, currentUser, onLogout, onNavigate }) {
           onClick={() => onNavigate("multiplayer")}
         >
           Multiplayer
+        </button>
+
+        <button
+          className="theme-toggle"
+          onClick={onToggleTheme}
+          title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        >
+          {theme === "dark" ? "Light" : "Dark"}
         </button>
 
         {currentUser ? (

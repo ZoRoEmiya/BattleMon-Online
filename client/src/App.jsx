@@ -15,14 +15,27 @@ import MultiplayerPage from "./pages/MultiplayerPage";
 import RegisterPage from "./pages/RegisterPage";
 
 const TOKEN_STORAGE_KEY = "battlemonToken";
+const THEME_STORAGE_KEY = "battlemonTheme";
+
+function getStoredTheme() {
+  const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+
+  return storedTheme === "light" ? "light" : "dark";
+}
 
 function App() {
   const [currentPage, setCurrentPage] = useState("menu");
   const [selectedTeam, setSelectedTeam] = useState([]);
+  const [theme, setTheme] = useState(getStoredTheme);
   const [token, setToken] = useState(
     () => localStorage.getItem(TOKEN_STORAGE_KEY) || ""
   );
   const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     if (!token) {
@@ -135,6 +148,7 @@ function App() {
         <MultiplayerPage
           currentUser={currentUser}
           selectedTeam={selectedTeam}
+          token={token}
         />
       );
     }
@@ -152,8 +166,14 @@ function App() {
       <Navbar
         currentUser={currentUser}
         currentPage={currentPage}
+        theme={theme}
         onLogout={handleLogout}
         onNavigate={setCurrentPage}
+        onToggleTheme={() =>
+          setTheme((currentTheme) =>
+            currentTheme === "dark" ? "light" : "dark"
+          )
+        }
       />
 
       {renderPage()}

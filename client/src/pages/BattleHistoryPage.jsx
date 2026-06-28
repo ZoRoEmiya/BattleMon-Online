@@ -61,6 +61,10 @@ function BattleHistoryPage({ currentUser, token }) {
       try {
         const data = await getBattleHistory(token);
 
+        if (!Array.isArray(data.battles)) {
+          throw new Error("Invalid battle history response");
+        }
+
         if (active) {
           setBattles(data.battles);
         }

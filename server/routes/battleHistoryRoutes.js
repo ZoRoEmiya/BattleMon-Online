@@ -5,12 +5,21 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 function formatBattleHistory(battle) {
+  let logs = [];
+
+  try {
+    const parsedLogs = JSON.parse(battle.logs);
+    logs = Array.isArray(parsedLogs) ? parsedLogs : [];
+  } catch {
+    logs = [];
+  }
+
   return {
     id: battle.id,
     opponentName: battle.opponentName,
     result: battle.result,
     status: battle.status,
-    logs: JSON.parse(battle.logs),
+    logs,
     createdAt: battle.createdAt,
     endedAt: battle.endedAt
   };
@@ -43,8 +52,12 @@ router.post("/history", authMiddleware, async (req, res) => {
     endedAt
   } = req.body;
 
-  if (!result || !status) {
+  if (typeof result !== "string" || typeof status !== "string") {
     return res.status(400).json({ error: "Battle result and status are required" });
+  }
+
+  if (!Array.isArray(logs)) {
+    return res.status(400).json({ error: "Battle logs must be an array" });
   }
 
   try {
