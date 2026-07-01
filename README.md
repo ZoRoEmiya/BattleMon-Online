@@ -7,7 +7,7 @@
 
 ## 🎮 What is BattleMon Online?
 
-BattleMon Online is a finished multiplayer web game where players build teams of custom creatures and battle each other in strategic turn-based combat.
+BattleMon Online is a multiplayer web game where players build teams of custom creatures and battle each other in strategic turn-based combat.
 
 The project includes user accounts, saved teams, NPC battles, real-time multiplayer battles, battle history, dark/light mode, and a full backend battle engine.
 
